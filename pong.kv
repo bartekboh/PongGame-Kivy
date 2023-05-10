@@ -1,0 +1,97 @@
+#:kivy 1.0.9
+#:import menu menu
+#: import ew kivy.uix.effectwidget
+
+<PongBall>:
+    size: 50, 50
+    canvas:
+        Ellipse:
+            pos: self.pos
+            size: self.size
+
+<Player1>:
+    size: 25, 200
+    canvas:
+        Color:
+            rgba: 0,0,1,1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<Player2>:
+    size: 25, 200
+    canvas:
+        Color:
+            rgba: 1,0,0,1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+
+<PongGame>:
+    menu: menu
+    ball: pong_ball
+    player1: player_left
+    player2: player_right
+    canvas.before:
+        Color:
+            rgba: .5,.3,.8,.1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    canvas:
+        Color:
+            rgba: 1, 1, 1, .8
+        Rectangle:
+            pos: self.center_x - 5, 0
+            size: 10, self.height * 0.95
+    Menu:
+        id: menu
+        size: root.size
+        pos: root.pos
+        opacity: 1
+    BoxLayout:
+        canvas:
+            Color:
+                rgba: .5,.3,.8,.1
+            Rectangle:
+                pos: 0, root.height - root.height*0.1
+                size: root.width, root.height*0.1
+    Button:
+        text: "Menu [ESC]"
+        font_name: "Fonts/Lcd.ttf"
+        font_size: dp(35)
+        color: .7,.5,1,1
+        size: dp(300), root.height * 0.1
+        pos: root.width/2 - self.width/2, root.height * 0.9
+        on_press: root.change_menu_state(root)
+
+    Label:
+        id: "P1 Score"
+        font_size: 70
+        center_x: root.width / 4
+        top: root.top - 50
+        text: str(root.player1.score)
+        color: .2,.2,1,1
+
+    Label:
+        id: "P2 Score"
+        font_size: 70
+        center_x: root.width * 3 / 4
+        top: root.top - 50
+        text: str(root.player2.score)
+        color: 1,0,0,1
+
+    PongBall:
+        id: pong_ball
+        center: self.parent.center
+
+    Player1:
+        id: player_left
+        x: root.x
+        center_y: root.center_y * 0.9
+
+    Player2:
+        id: player_right
+        x: root.width - self.width
+        center_y: root.center_y * 0.9

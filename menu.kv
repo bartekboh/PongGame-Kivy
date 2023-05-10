@@ -1,0 +1,37 @@
+#:kivy 1.0.9
+
+<Menu>
+    canvas.before:
+        Color:
+            rgba: 0, 0, 0, .4
+        Rectangle:
+            pos: 0,0
+            size: self.width, self.height * 1.1
+        Color:
+            rgba: 0,0,0,.4
+        Rectangle:
+            pos: self.width/3.35, self.height/1.65
+            # size: self.width/2.5, (self.height * 1.1)/6
+            size: dp(320), dp(110)
+    Label:
+        text: "Space-Pong"
+        font_name: "Fonts/Lcd.ttf"
+        font_size: dp(55)
+        color: .2,.5,1,1
+        pos_hint: {"center_x": .5, "center_y": .7}
+    Button:
+        text: "Resume"
+        font_name: "Fonts/Lcd.ttf"
+        font_size: dp(35)
+        pos_hint: {"center_x": .5, "center_y": .4}
+        size_hint: .3, .1
+        on_press: root.parent.change_menu_state(root)
+        color: .2,.5,1,1
+    Button:
+        text: "Exit"
+        font_name: "Fonts/Lcd.ttf"
+        font_size: dp(30)
+        pos_hint: {"center_x": .5, "center_y": .28}
+        size_hint: .2, .1
+        on_press: root.parent.close_window()
+        color: .2,.5,1,1
