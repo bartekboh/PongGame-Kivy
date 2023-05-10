@@ -2,6 +2,7 @@
 #:import menu menu
 #: import ew kivy.uix.effectwidget
 
+
 <PongBall>:
     size: 50, 50
     canvas:
@@ -27,12 +28,20 @@
             pos: self.pos
             size: self.size
 
+<Boost>:
+    size: 30, 30
+    canvas:
+        Ellipse:
+            pos: self.pos
+            size: self.size
+
 
 <PongGame>:
-    menu: menu
+    menu_widget: menu_widget
     ball: pong_ball
     player1: player_left
     player2: player_right
+    boost: boost
     canvas.before:
         Color:
             rgba: .5,.3,.8,.1
@@ -45,11 +54,6 @@
         Rectangle:
             pos: self.center_x - 5, 0
             size: 10, self.height * 0.95
-    Menu:
-        id: menu
-        size: root.size
-        pos: root.pos
-        opacity: 1
     BoxLayout:
         canvas:
             Color:
@@ -64,7 +68,7 @@
         color: .7,.5,1,1
         size: dp(300), root.height * 0.1
         pos: root.width/2 - self.width/2, root.height * 0.9
-        on_press: root.change_menu_state(root)
+        on_press: root.change_menu_state()
 
     Label:
         id: "P1 Score"
@@ -95,3 +99,12 @@
         id: player_right
         x: root.width - self.width
         center_y: root.center_y * 0.9
+    Boost:
+        id: boost
+        size: 35, 35
+        pos: root.boost.pos_x, root.boost.pos_y
+    MenuWidget:
+        id: menu_widget
+        size: root.size
+        pos: root.pos
+        opacity: 1

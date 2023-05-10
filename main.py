@@ -11,8 +11,14 @@ from kivy.properties import (
 from kivy.vector import Vector
 from kivy.clock import Clock
 from kivy.uix.button import Button
+from kivy.core.audio import SoundLoader as SL
 
 Builder.load_file("menu.kv")
+
+
+class Boost(Widget):
+    pos_x = NumericProperty(-100)
+    pos_y = NumericProperty(-100)
 
 
 class Player1(Widget):
@@ -29,8 +35,18 @@ class Player1(Widget):
 class Player2(Widget):
     score = NumericProperty(0)
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        
+        self.sound = SL.load("ping-pong-ball.mp3")
+
     def bounce_ball(self, ball):
         if self.collide_widget(ball):
+            try:
+                self.sound.play()
+            except:
+                pass
+
             vx, vy = ball.velocity
             offset = (ball.center_y - self.center_y) / (self.height / 2)
             vel = Vector(-1 * vx, vy)
@@ -55,10 +71,11 @@ class PongBall(Widget):
 
 
 class PongGame(Widget):
+    menu_widget = ObjectProperty()
     ball = ObjectProperty(None)
     player1 = ObjectProperty(None)
     player2 = ObjectProperty(None)
-    menu = ObjectProperty(None)
+    boost = ObjectProperty()
 
     pressed_keys = {
         'w': False,
@@ -80,7 +97,11 @@ class PongGame(Widget):
         self.stars_list = []
         self.init_star()
 
-        self.paddle_speed = 5
+        self.boost_timer = 0
+
+        self.paddle_speed = 6
+
+        self.avaiable_boosts = ["ball_speed", "paddle_size", "ball_size", "gravity"]
 
         self._keyboard = Window.request_keyboard(self._keyboard_closed, self)
         self._keyboard.bind(on_key_down = self._on_keyboard_down)
@@ -102,6 +123,8 @@ class PongGame(Widget):
 
         if pressed_key == 'escape':
             print("ESC")
+            self.change_menu_state()
+        
 
         return True
 
@@ -152,6 +175,8 @@ class PongGame(Widget):
 
     def update(self, dt):
 
+        
+
         if self.pressed_keys == 'escape':
             print("ESC")
 
@@ -170,6 +195,18 @@ class PongGame(Widget):
 
         else:
             self.ball.move()
+
+            if self.boost_timer > 0:
+                self.boost_timer -= dt
+                print(self.boost_timer)
+            
+            else:
+                self.remove_boost_widget()
+
+            if random.randrange(200) == 5 and self.boost_timer == 0:
+                self.boost_timer = random.randrange(20,60)
+                self.boost.pos_x = random.randrange(int(self.width))
+                self.boost.pos_y = random.randrange(int(self.height * 0.8))
 
             # bounce of paddles
             self.player1.bounce_ball(self.ball)
@@ -221,42 +258,45 @@ class PongGame(Widget):
                 elif self.player2.center_y - 1 < 0 - self.player2.height/2:
                     self.player2.y -= 1
 
-    # Paddle movement on mouse left click
-    # def on_touch_move(self, touch):
-    #     if not self.game_over_state and not self.menu_state:
-    #         if touch.x < self.width / 3:
-    #             if touch.y < self.player1.height/2:
-    #                 self.player1.center_y = self.player1.height/2
-    #             elif touch.y > self.height * 0.9 - self.player1.height/2:
-    #                 self.player1.center_y = self.height * 0.9 - self.player1.height/2
-    #             else:
-    #                 self.player1.center_y = touch.y
-    #         if touch.x > self.width - self.width / 3:
-    #             if touch.y < self.player2.height/2:
-    #                 self.player2.center_y = self.player2.height/2
-    #             elif touch.y > self.height * 0.9 - self.player2.height/2:
-    #                 self.player2.center_y = self.height * 0.9 - self.player2.height/2
-    #             else:
-    #                 self.player2.center_y = touch.y
+    def remove_boost_widget(self):
+        self.boost_timer = 0
+        self.boost.x = -100
+        self.boost.y = -100
 
-            
+        return self.boost, self.boost_timer
 
-    def on_key_down(self, keycode, modifiers):
-        if keycode[0] == "up":
-            print("Up!!") 
+    def restart_game(self):
+        self.player1.score = 0
+        self.player2.score = 0
+        self.remove_boost_widget()
+        self.serve_ball(vel=(0,4))
+        self.change_menu_state()
+        self.update_star()
+        
+    def on_menu_button_press(self):
+        self.menu_widget.opacity = 0
+        self.menu_state = False
+        print("Closing the menu")
+        print(self.menu_widget)
 
-    def change_menu_state(self, MENU):
-        if MENU.opacity == 0:
+    def on_menu_open(self):
+        self.menu_widget.opacity = 1
+        self.menu_state = True
+        print("Opening the Menu")
+        print(self.menu_widget)
+
+    def change_menu_state(self):
+        if self.menu_widget.opacity == 0:
             self.menu_state = True
-            MENU.opacity = 1
-            # print("Now on")
-        elif MENU.opacity == 1:
+            self.menu_widget.opacity = 1
+            print("Opening Menu")
+        elif self.menu_widget.opacity == 1:
             self.menu_state = False
-            MENU.opacity = 0
+            self.menu_widget.opacity = 0
+            print("Closing Menu")
             self.serve_ball(vel=(4,0))
-            # print(self.menu.opacity)
-            # print("Now off")
-            # print(self.menu.opacity)
+
+        return
 
     def close_window(self):
         Window.close()
