@@ -11,7 +11,6 @@
             rgba: 0,0,0,.4
         Rectangle:
             pos: self.width/3.35, self.height/1.65
-            # size: self.width/2.5, (self.height * 1.1)/6
             size: dp(320), dp(110)
     Label:
         text: "Space-Pong"
@@ -42,4 +41,32 @@
         pos_hint: {"center_x": .5, "center_y": .28}
         size_hint: .2, .1
         on_press: root.parent.close_window()
+        color: .2,.5,1,1
+
+
+<StartWidget>:
+    canvas.before:
+        Color:
+            rgba: 0, 0, 0, .4
+        Rectangle:
+            pos: 0,0
+            size: self.width, self.height * 1.1
+        Color:
+            rgba: 0,0,0,.4
+        Rectangle:
+            pos: self.width/3.35, self.height/1.65
+            size: dp(320), dp(110)
+    Label:
+        text: "Space-Pong"
+        font_name: "Fonts/Lcd.ttf"
+        font_size: dp(55)
+        color: .2,.5,1,1
+        pos_hint: {"center_x": .5, "center_y": .7}
+    Button:
+        text: "Start"
+        font_name: "Fonts/Lcd.ttf"
+        font_size: dp(35)
+        pos_hint: {"center_x": .5, "center_y": .5}
+        size_hint: .3, .1
+        on_press: root.parent.start_game()
         color: .2,.5,1,1

@@ -38,6 +38,7 @@
 
 <PongGame>:
     menu_widget: menu_widget
+    start_widget: start_widget
     ball: pong_ball
     player1: player_left
     player2: player_right
@@ -103,8 +104,11 @@
         id: boost
         size: 35, 35
         pos: root.boost.pos_x, root.boost.pos_y
+    StartWidget:
+        id: start_widget
+        size: root.size
+        pos: root.pos
     MenuWidget:
         id: menu_widget
         size: root.size
         pos: root.pos
-        opacity: 1
