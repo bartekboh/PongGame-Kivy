@@ -68,5 +68,13 @@
         font_size: dp(35)
         pos_hint: {"center_x": .5, "center_y": .5}
         size_hint: .3, .1
-        on_press: root.parent.start_game()
+        on_press: root.parent.change_menu_state()
+        color: .2,.5,1,1
+    Button:
+        text: "Exit"
+        font_name: "Fonts/Lcd.ttf"
+        font_size: dp(30)
+        pos_hint: {"center_x": .5, "center_y": .39}
+        size_hint: .2, .1
+        on_press: root.parent.close_window()
         color: .2,.5,1,1

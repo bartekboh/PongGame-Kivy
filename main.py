@@ -1,3 +1,5 @@
+from typing import Any
+
 import math
 import random
 
@@ -32,26 +34,24 @@ class Player1(Widget):
             vel = Vector(-1 * vx, vy)
             ball.velocity = vel.x, vel.y + offset
 
+            last_contact = 1
+            return last_contact
+
 
 class Player2(Widget):
     score = NumericProperty(0)
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        
-        self.sound = SL.load("ping-pong-ball.mp3")
-
     def bounce_ball(self, ball):
         if self.collide_widget(ball):
-            try:
-                self.sound.play()
-            except:
-                pass
 
             vx, vy = ball.velocity
             offset = (ball.center_y - self.center_y) / (self.height / 2)
             vel = Vector(-1 * vx, vy)
             ball.velocity = vel.x, vel.y + offset
+
+            last_contact = 2
+            return last_contact
+
 
 
 class PongBall(Widget):
@@ -95,12 +95,17 @@ class PongGame(Widget):
         self.menu_state = False
         self.game_over_state = False
         self.game_over_score = 10
-        
+
+        self.start_widget.opacity = 1
+        print("Opening Start Menu")
+
+        self.last_contact = 0
+
         self.stars_count = random.randrange(30, 60)
         self.stars_list = []
         self.init_star()
 
-        self.ball_speed = 6
+        self.ball_speed = 5
         self.paddle_speed = 6
 
         self.org_ball_w = self.ball.width
@@ -109,12 +114,10 @@ class PongGame(Widget):
         self.org_ball_speed = self.ball_speed
         self.org_paddle_speed = self.paddle_speed
 
-        self.gravity_boost = False
-
         self.boost_timer = 0
 
         self.boost_type = ""
-        self.avaiable_boosts = ["ball_speed", "paddle_size", "ball_size", "gravity"]
+        self.avaiable_boosts = ["ball_speed", "paddle_size", "ball_size"]
 
         self._keyboard = Window.request_keyboard(self._keyboard_closed, self)
         self._keyboard.bind(on_key_down = self._on_keyboard_down)
@@ -142,6 +145,9 @@ class PongGame(Widget):
         self.pressed_keys[released_key] = False
         return True
 
+    def set_last_contact(self, player):
+        self.last_contact = player
+
     def on_size(self, *args):
         self.update_star()
 
@@ -166,14 +172,7 @@ class PongGame(Widget):
             self.stars_list[i].points = [star_x, star_y, star_x, star_y]
             self.stars_list[i].width = star_w
 
-    def on_gravity(self):
-        # for red
-        self.ball.velocity_x += 0.1
-
-        # for blue
-        self.ball.velocity_x -= 0.1
-
-    def serve_ball(self, vel=(6, 0)):
+    def serve_ball(self, vel=(6, 0)) -> object:
         self.ball.center = self.center
         self.ball.velocity = vel
 
@@ -205,8 +204,11 @@ class PongGame(Widget):
         self.ball.velocity_x = self.ball_speed
         self.paddle_speed = self.org_paddle_speed
 
-
     def update(self, dt):
+
+        print(self.ball_speed)
+        print(self.ball.velocity_x)
+
 
         if not self.menu_state:
             self.menu_widget.opacity = 0
@@ -223,18 +225,14 @@ class PongGame(Widget):
             if self.game_over_state:
                 print("GAME OVER")
                 self.change_menu_state()
+                self.game_over_state = False
 
             if self.menu_state:
                 pass
-            
 
         else:
             self.ball.move()
 
-            # ADD GRAVITY DURATION TIMER
-            if self.gravity_boost:
-                self.ball.velocity_x += 0.5
-         
             if self.detect_collision_with_boost():
                 if self.boost_type == "ball_speed":
                     if not self.ball.velocity_x >= 12:
@@ -248,11 +246,6 @@ class PongGame(Widget):
                     if not self.ball.width >= self.org_ball_w * 2 and not self.ball.height >= self.org_ball_h * 2:
                         self.ball.width *= 1.3
                         self.ball.height *= 1.3
-                elif self.boost_type == "gravity":
-                    if not self.ball.velocity_x >= self.ball.velocity_x * 1.1:
-                        self.gravity_boost = True
-                
-
 
             if self.boost_timer > 0:
                 self.boost_timer -= dt
@@ -264,17 +257,21 @@ class PongGame(Widget):
                 self.boost_timer = random.randrange(20,60)
                 self.boost.pos_x = random.randrange(int(self.width/8), int(self.width*(7/8)))
                 self.boost.pos_y = random.randrange(int(self.height * 0.8))
-                self.boost_type = self.avaiable_boosts[int(random.randrange(4))]
+                self.boost_type = self.avaiable_boosts[int(random.randrange(len(self.avaiable_boosts)))]
                 print(self.boost_type)
 
             # bounce of paddles
-            self.player1.bounce_ball(self.ball)
-            self.player2.bounce_ball(self.ball)
+            x = self.player1.bounce_ball(self.ball)
+            if x == 1:
+                self.last_contact = x
+            y = self.player2.bounce_ball(self.ball)
+            if y == 2:
+                self.last_contact = y
 
             # bounce ball off bottom or top
             if (self.ball.y < self.y * 0.9) or (self.ball.top > self.top * 0.9):
                 self.ball.velocity_y *= -1
-            
+
 
             # went of to a side to score point?
             if self.ball.x < self.x:
@@ -300,7 +297,6 @@ class PongGame(Widget):
                     self.player1.y += self.paddle_speed
                 elif self.player1.center_y + 1 < self.height * 0.9 - self.player1.height/2:
                     self.player1.y += 1
-                    
 
             if self.pressed_keys['s']:
                 if self.player1.center_y - self.paddle_speed > 0 + self.player1.height/2:
@@ -332,25 +328,30 @@ class PongGame(Widget):
         self.player2.score = 0
         self.remove_boost_widget()
         self.remove_boosts()
-        self.serve_ball(vel=(self.ball_speed,0))
-        self.change_menu_state()
+        self.serve_ball(vel=(self.ball_speed, 0))
         self.update_star()
-
-    def start_game(self):
-        self.start_widget.opacity = 0
-        self.start_state = False
-        self.serve_ball(vel=(self.ball_speed,0))
+        if not self.game_over_state and not self.start_state:
+            self.change_menu_state()
         
     def change_menu_state(self):
-        if not self.menu_state:
+        if self.game_over_state:
+            self.start_state = True
+            self.start_widget.opacity = 1
+            self.game_over_state = False
+        elif not self.menu_state and not self.start_state:
             self.menu_state = True
             self.menu_widget.opacity = 1
             print("Opening Menu")
-        elif self.menu_state:
+        elif self.menu_state or self.start_state:
+            if self.start_state:
+                self.restart_game()
             self.menu_state = False
+            self.start_state = False
             self.menu_widget.opacity = 0
+            self.start_widget.opacity = 0
             print("Closing Menu")
-            self.serve_ball(vel=(self.ball_speed,0))
+
+            self.serve_ball(vel=[self.ball_speed, 0])
 
         return
 
