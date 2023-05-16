@@ -97,7 +97,6 @@ class PongGame(Widget):
         self.game_over_score = 10
 
         self.start_widget.opacity = 1
-        print("Opening Start Menu")
 
         self.last_contact = 0
 
@@ -125,6 +124,8 @@ class PongGame(Widget):
 
         Clock.schedule_interval(self.update, 1.0 / self.refresh_rate)
 
+        print("START")
+
     def _keyboard_closed (self):
         self._keyboard.unbind(on_key_down=self._on_keyboard_down)
         self._keyboard = None
@@ -135,7 +136,6 @@ class PongGame(Widget):
         self.pressed_keys[pressed_key] = True
 
         if pressed_key == 'escape':
-            print("ESC")
             self.change_menu_state()
 
         return True
@@ -188,7 +188,6 @@ class PongGame(Widget):
         dis = math.sqrt(math.pow(diff_x, 2) + math.pow(diff_y, 2))
 
         if dis <= ba_r + bo_r:
-            print("Removing boost: ", dis, "<", ba_r, "+", bo_r)
             self.remove_boost_widget()
 
             return True
@@ -206,15 +205,8 @@ class PongGame(Widget):
 
     def update(self, dt):
 
-        print(self.ball_speed)
-        print(self.ball.velocity_x)
-
-
         if not self.menu_state:
             self.menu_widget.opacity = 0
-
-        if self.pressed_keys == 'escape':
-            print("ESC")
 
         if self.game_over_state or self.menu_state or self.start_state:
             self.serve_ball(vel=(0, 0))
@@ -226,9 +218,6 @@ class PongGame(Widget):
                 print("GAME OVER")
                 self.change_menu_state()
                 self.game_over_state = False
-
-            if self.menu_state:
-                pass
 
         else:
             self.ball.move()
@@ -341,7 +330,6 @@ class PongGame(Widget):
         elif not self.menu_state and not self.start_state:
             self.menu_state = True
             self.menu_widget.opacity = 1
-            print("Opening Menu")
         elif self.menu_state or self.start_state:
             if self.start_state:
                 self.restart_game()
@@ -349,7 +337,6 @@ class PongGame(Widget):
             self.start_state = False
             self.menu_widget.opacity = 0
             self.start_widget.opacity = 0
-            print("Closing Menu")
 
             self.serve_ball(vel=[self.ball_speed, 0])
 
